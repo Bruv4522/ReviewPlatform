@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -20,13 +21,26 @@ public class AdminService {
     private final AdminRepo repo;
     private final TokenRepo tokens;
     private final KeyRepo key;
+    private final PasswordEncoder encoder;
 
     public boolean signup(String username, String password, String passkey) {
-        if (key.findById((long) 1).orElseThrow(NoSuchElementException::new).getToken().equals(UUID.fromString(passkey))) {
+        UUID storedToken = key.findById(1L)
+                .orElseThrow(NoSuchElementException::new)
+                .getToken();
+
+        UUID providedKey;
+
+        try {
+            providedKey = UUID.fromString(passkey);
+        } catch (IllegalArgumentException e) {
             return false;
         }
 
-        repo.save(new AdminUser(username, password));
+        if (!providedKey.equals(storedToken)) {
+            return false;
+        }
+
+        repo.save(new AdminUser(username, encoder.encode(password)));
         return true;
     }
 
@@ -40,9 +54,17 @@ public class AdminService {
     }
 
     @PostConstruct
-    public void saveToken() {
-        Passkey p = new Passkey();
-        p.setId(1L);
-        key.save(p);
+    public void initPasskey() {
+        Passkey p = key.findById(1L).orElseGet(() -> {
+            Passkey newKey = new Passkey();
+            newKey.setId(1L);
+            return key.save(newKey);
+        });
+
+        if (p.getToken() == null) {
+            p.setToken(UUID.randomUUID());
+            key.save(p);
+        }
     }
+
 }
