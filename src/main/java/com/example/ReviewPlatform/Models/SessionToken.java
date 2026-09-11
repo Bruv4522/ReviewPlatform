@@ -1,6 +1,9 @@
 package com.example.ReviewPlatform.Models;
 
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -15,6 +18,7 @@ public class SessionToken {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", unique = true)
     private AdminUser user;
+    private boolean valid = true;
     private final Instant createdAt = Instant.now();
     private final Instant expiresAt = createdAt.plus(3, ChronoUnit.HOURS);
     private Instant revokedAt;
@@ -27,6 +31,15 @@ public class SessionToken {
     private void generateToken() {
         if (token == null) {
             token = UUID.randomUUID();
+        }
+    }
+
+    @Async
+    @Transactional
+    @Scheduled(cron = "0 0 */6 * * *")
+    public void checkValid() {
+        if (!this.isValid()) {
+            valid = false;
         }
     }
 }

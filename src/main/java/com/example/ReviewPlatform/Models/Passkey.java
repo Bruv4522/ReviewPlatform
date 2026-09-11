@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Passkey {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private UUID token;
 
