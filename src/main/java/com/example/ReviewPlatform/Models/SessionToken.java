@@ -11,7 +11,6 @@ public class SessionToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID token;
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", unique = true)
@@ -22,6 +21,13 @@ public class SessionToken {
 
     private boolean isValid() {
         return revokedAt == null && Instant.now().isBefore(expiresAt);
+    }
+
+    @PrePersist
+    private void generateToken() {
+        if (token == null) {
+            token = UUID.randomUUID();
+        }
     }
 }
 

@@ -33,5 +33,9 @@ public class AdminUser {
 // Then you create a service that uses CRON scheduling to periodically delete invalid tokens every 6 hours
 // Remember, you are building this to be used by one company as proof of existence is too difficult
 // It is a backend that if developed beyond the MVP to production-grade will be sold to a small company
+// We'll use a passkey that resets every 6 hours to verify that an admin account being signed up is really an admin
 // You have to learn React and build a frontend too
 // Godspeed
+
+// Also when you get online, remember in SessionToken.java for the token variable, instead use @PrePersist and write a function that generates it
+// And upload your main package to Ox Alpha to generate a clean README.md documentation
